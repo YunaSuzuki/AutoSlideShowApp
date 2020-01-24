@@ -6,14 +6,21 @@ import android.os.Bundle
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
+import android.os.Handler
 import android.view.View
 import android.provider.MediaStore
 import android.content.ContentUris
 import kotlinx.android.synthetic.main.activity_main.*
+import java.util.*
 
 class MainActivity : AppCompatActivity(){
 
     private val PERMISSIONS_REQUEST_CODE = 100
+
+    //タイマー用
+    private var mTimer: Timer? = null
+    private var mHandler = Handler()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,9 +90,42 @@ class MainActivity : AppCompatActivity(){
             //cursor.close()
         }
 
-        //slideshow_button.setOnClickListener(this)
+
+        //スライドショー
+        slideshow_button.setOnClickListener{
+            if(mTimer == null){
+                mTimer = Timer()
+                mTimer!!.schedule(object : TimerTask() {
+                    override fun run() {
+                        //2秒ループの中での処理
+                        if(cursor!!.moveToNext()){
+                            val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
+                            val id = cursor.getLong(fieldIndex)
+                            val imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+                            Log.d("Android", "URI : " + imageUri.toString())
+                            imageView1.setImageURI(imageUri)
+                        } else if(cursor.moveToFirst()){
+                            val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
+                            val id = cursor.getLong(fieldIndex)
+                            val imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+                            Log.d("Android", "URI : " + imageUri.toString())
+                            imageView1.setImageURI(imageUri)
+                        }
+                    }
+                }, 100, 2000)
+            }
+            else if (mTimer != null){
+                mTimer!!.cancel()
+                mTimer = null
+            }
+        }
+
 
     }
+
+
+
+
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         when (requestCode) {
