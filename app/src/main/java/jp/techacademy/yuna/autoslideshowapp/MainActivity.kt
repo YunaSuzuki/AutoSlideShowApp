@@ -93,6 +93,12 @@ class MainActivity : AppCompatActivity(){
 
         //スライドショー
         slideshow_button.setOnClickListener{
+
+            //他のボタンをタップ不可にする
+            previous_button.isClickable = false
+            next_button.isClickable = false
+
+            //タイマー
             if(mTimer == null){
                 mTimer = Timer()
                 mTimer!!.schedule(object : TimerTask() {
@@ -102,21 +108,28 @@ class MainActivity : AppCompatActivity(){
                             val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
                             val id = cursor.getLong(fieldIndex)
                             val imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
-                            Log.d("Android", "URI : " + imageUri.toString())
-                            imageView1.setImageURI(imageUri)
+                            mHandler.post {
+                                imageView1.setImageURI(imageUri)
+                                slideshow_button.text = "停止"
+                            }
                         } else if(cursor.moveToFirst()){
                             val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
                             val id = cursor.getLong(fieldIndex)
                             val imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
-                            Log.d("Android", "URI : " + imageUri.toString())
-                            imageView1.setImageURI(imageUri)
+                            mHandler.post {
+                                imageView1.setImageURI(imageUri)
+                            }
                         }
                     }
                 }, 100, 2000)
             }
-            else if (mTimer != null){
+            else if (mTimer != null) {
                 mTimer!!.cancel()
                 mTimer = null
+                slideshow_button.text = "再生"
+                //他のボタンをタップ可に戻す
+                previous_button.isClickable = true
+                next_button.isClickable = true
             }
         }
 
